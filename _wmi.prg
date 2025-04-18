@@ -4,22 +4,23 @@
 * this program should be saved as _WMI.PRG
 *-----------------------------------------------------------------------------------
 *
-* simple usage: 
+* simple usage:
 * _wmi( wmiClass [where <filter condition>] [, wmiNameSpace] )
-* where: optional query filter
+*
+* where is the optional query filter
 * wmiNameSpace defaults to "CIMV2"
 *
-* ie: 
+* ie:
 *
-* oDisks = _wmi('Win32_diskDrive') 
+* oDisks = _wmi('Win32_diskDrive')
 * oMonitors = _wmi('Win32_PNPEntity where service = "monitor"')
 *
 * Test: save this program as _wmi.prg and do "testme in _wmi"
 *
 *------------------------------------------------------------------------------------
-lparameters wmiquery,wmiclass
+Lparameters wmiquery,wmiclass
 
-local oerr,emessage,objwmiservice,oquery,owmi
+Local oerr,emessage,objwmiservice,oquery,owmi
 
 wmiclass = Evl(m.wmiclass,'CIMV2')
 wmiquery = Evl(m.wmiquery,'')
@@ -44,7 +45,7 @@ Endif
 *-------------------------------------------------
 Procedure processobject( oquery )
 *-------------------------------------------------
-local owmi,nitem,oitem
+Local owmi,nitem,oitem
 
 owmi = Createobject('empty')
 AddProperty(owmi,'items(1)',.Null.)
@@ -73,54 +74,51 @@ Return m.owmi
 Procedure setproperties( oitem , otarget  )
 *--------------------------------------------------------
 
-local oerr,thisproperty,thisarray,nitem,thisitem,property,item
+Local oerr,thisproperty,thisarray,nitem,thisitem,property,Item
 
 For Each property In m.oitem.properties_
-   Try
-      Do Case
-      Case Vartype( m.property.Value ) = 'O'
-         thisproperty = Createobject('empty')
-         setproperties(m.property.Value, m.thisproperty )
-         AddProperty( otarget ,m.property.Name,m.thisproperty)
 
-      Case m.property.isarray
+   Do Case
+   Case Vartype( m.property.Value ) = 'O'
+      thisproperty = Createobject('empty')
+      setproperties(m.property.Value, m.thisproperty )
+      AddProperty( otarget ,m.property.Name,m.thisproperty)
 
-         AddProperty( otarget ,property.Name+'(1)',.Null.)
-         thisarray = 'otarget.'+m.property.Name
+   Case m.property.isarray
 
-         nitem = 0
+      AddProperty( otarget ,property.Name+'(1)',.Null.)
+      thisarray = 'otarget.'+m.property.Name
 
-         If !Isnull(m.property.Value)
+      nitem = 0
 
-            For Each Item In m.property.Value
+      If !Isnull(m.property.Value)
 
-               nitem = m.nitem+1
-               Dimension &thisarray(m.nitem)
+         For Each Item In m.property.Value
 
-               If Vartype( m.item) = 'O'
-                  thisitem = Createobject('empty')
-                  setproperties( m.item, m.thisitem )
-                  &thisarray(m.nitem) = m.thisitem
-               Else
-                  &thisarray(m.nitem) = m.item
-               Endif
+            nitem = m.nitem+1
+            Dimension &thisarray(m.nitem)
 
-            Endfor
+            If Vartype( m.item) = 'O'
+               thisitem = Createobject('empty')
+               setproperties( m.item, m.thisitem )
+               &thisarray(m.nitem) = m.thisitem
+            Else
+               &thisarray(m.nitem) = m.item
+            Endif
 
-         Endif
+         Endfor
 
-      Otherwise
-         AddProperty( otarget ,m.property.Name,m.property.Value)
-      Endcase
+      Endif
 
-   Catch To oerr
-      Messagebox(Message(),0)
-   Endtry
+   Otherwise
+      AddProperty( otarget ,m.property.Name,m.property.Value)
+   Endcase
+
 Endfor
 
 
 *----------------------------------
-procedure testme
+Procedure testme
 *----------------------------------
 Public oinfo
 
@@ -128,14 +126,16 @@ oinfo = Create('empty')
 
 Wait 'Running WMI Query....please wait.. ' Window Nowait At Wrows()/2,Wcols()/2
 
-
-addproperty( oinfo, "monitors"  , wmiquery('Win32_PNPEntity where service = "monitor"') )
-addproperty( oInfo, "diskdrive" , wmiquery('Win32_diskDrive') )
-addproperty( oInfo, "startup" ,   wmiquery('Win32_startupCommand'))
-addproperty( oInfo, "BaseBoard" , wmiquery('Win32_baseBoard') )
-addproperty( oInfo, "netAdaptersConfig",  wmiquery('Win32_NetworkAdapterConfiguration') )
+AddProperty( oinfo, "OperatingSystem"  , _wmi('Win32_OperatingSystem') )
+AddProperty( oinfo, "PhysicalMemory"  , _wmi('Win32_PhysicalMemory') )
+AddProperty( oinfo, "monitors"  , _wmi('Win32_PNPEntity where service = "monitor"') )
+AddProperty( oinfo, "diskdrive" , _wmi('Win32_diskDrive') )
+AddProperty( oinfo, "startup" ,   _wmi('Win32_startupCommand'))
+AddProperty( oinfo, "BaseBoard" , _wmi('Win32_baseBoard') )
+AddProperty( oinfo, "netAdaptersConfig",  _wmi('Win32_NetworkAdapterConfiguration') )
 
 
 Messagebox( 'Please explore "oInfo" in debugger watch window or command line ',0)
 
 
+Debug
